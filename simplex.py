@@ -65,6 +65,14 @@ class PayoffResult:
  '''
 
 
+def format_frac(frac):
+	if frac.numerator == 0:
+		return "0"
+	elif frac.denominator == 1:
+		return "{}".format(frac.numerator)
+	else:
+		return "{}/{}".format(frac.numerator, frac.denominator)
+
 '''
  * Struct for storing a tableau
  *
@@ -102,12 +110,7 @@ class Tableau:
 					tableau_str += "|"
 
 				frac = Fraction(self.m[row][col])
-				if frac.numerator == 0:
-					tableau_str += "   0    "
-				elif frac.denominator == 1:
-					tableau_str += "{:4d}    ".format(frac.numerator)
-				else:
-					tableau_str += "{:4d}/{:<3d}".format(frac.numerator, frac.denominator)
+				tableau_str += "{:^8}".format(format_frac(frac))
 			if row < self.rows - 1:
 				tableau_str += "\n"
 		return tableau_str
@@ -368,9 +371,9 @@ def main():
 	p1_strategy = [tableau.m[tableau.rows - 1][n + col] / v for col in range(m)]
 	p2_strategy = [tableau.m[order[index]][tableau.cols - 1] / v if order[index] >= 0 else 0 for index in range(n)]
 
-	print("\nPlayer 1 Optimal Strategy: (", ", ".join("{}/{}".format(p.numerator, p.denominator) for p in p1_strategy), ")")
-	print("Player 2 Optimal Strategy: (", ", ".join("{}/{}".format(q.numerator, q.denominator) for q in p2_strategy), ")")
-	print("Value: {}".format(value))
+	print("\nPlayer 1 Optimal Strategy: (", ", ".join(format_frac(p) for p in p1_strategy), ")")
+	print("Player 2 Optimal Strategy: (", ", ".join(format_frac(q) for q in p2_strategy), ")")
+	print("Value: {}".format(format_frac(value)))
 
 	return 0
 
