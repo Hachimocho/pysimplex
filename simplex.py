@@ -146,9 +146,9 @@ def free_2d_arr(arr, rows):
 
 
 def print_usage():
-	print("usage: simplex m n\n")
-	print("\tm: number of rows, integer greater than 0\n")
-	print("\tn: number of columns, integer greater than 0\n")
+	print("usage: simplex m n")
+	print("\tm: number of rows, integer greater than 0")
+	print("\tn: number of columns, integer greater than 0")
 
 
 '''
@@ -330,7 +330,9 @@ def main():
 	parse_result: ArgResult = parse_args(len(sys.argv), sys.argv)
 
 	if not parse_result.success:
+		print_usage()
 		return -1
+
 	# Get initial matrix
 	payoff_result = get_payoff(parse_result.m, parse_result.n)
 
