@@ -93,32 +93,21 @@ class Tableau:
 
 	# equivalent to print_tableau in Aidan's simplex.c
 	def __str__(self):
-		# Use numpy's inbuilt array to string conversion
-		#return self.m.__str__()
-
-
-		# Get largest (size) number for formatting purposes
-		max_num_size = 0
-		# for row in range(self.rows):
-		# 	for col in range(self.cols):
-		# 		# Account for size of negative sign
-		# 		if self.m[row][col] < 0:
-		# 			if self.m[row][col]
 		tableau_str = ""
 		for row in range(self.rows):
 			if row == self.s_size:
-				tableau_str += "_____" * self.cols + "\n"
+				tableau_str += "-" * (8 * self.cols + 2) + "\n"
 			for col in range(self.cols):
 				if col == self.x_size or col == self.x_size + self.s_size:
 					tableau_str += "|"
 
 				frac = Fraction(self.m[row][col])
 				if frac.numerator == 0:
-					tableau_str += "0 "
+					tableau_str += "   0    "
 				elif frac.denominator == 1:
-					tableau_str += str(frac.numerator) + " "
+					tableau_str += "{:4d}    ".format(frac.numerator)
 				else:
-					tableau_str += str(frac.numerator) + "/" + str(frac.denominator) + " "
+					tableau_str += "{:4d}/{:<3d}".format(frac.numerator, frac.denominator)
 			if row < self.rows - 1:
 				tableau_str += "\n"
 		return tableau_str
