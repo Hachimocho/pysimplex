@@ -1,5 +1,7 @@
 # Authors: Aidan Lynch, Bryce Gernon, Jim Godin, Ryan Devoe, Sam Ford
-import sys  # Command line argument handling
+from ctypes import Union
+import sys
+from typing import Tuple  # Command line argument handling
 import numpy  # Python matrix ops
 from fractions import Fraction
 import os  # Could be useful for saving output to file if desired
@@ -108,9 +110,17 @@ class Tableau:
 				tableau_str += "_____" * self.cols + "\n"
 			for col in range(self.cols):
 				if col == self.x_size or col == self.x_size + self.s_size:
-					tableau_str += " | "
-				tableau_str += str(Fraction(self.m[row][col]).numerator) + "/" + str(Fraction(self.m[row][col]).denominator) + " "
-			tableau_str += "\n"
+					tableau_str += "|"
+
+				frac = Fraction(self.m[row][col])
+				if frac.numerator == 0:
+					tableau_str += "0 "
+				elif frac.denominator == 1:
+					tableau_str += str(frac.numerator) + " "
+				else:
+					tableau_str += str(frac.numerator) + "/" + str(frac.denominator) + " "
+			if row < self.rows - 1:
+				tableau_str += "\n"
 		return tableau_str
 
 	'''
@@ -275,6 +285,12 @@ def get_init_tableau(payoff, m, n) -> Tableau:
 			else:
 				tableau.m[row][col] = Fraction((row < m))
 
+	# Add default values to tableau
+	for x in range(m):
+		tableau.m[n][x] = -1
+		tableau.m[x][m+n] = 1
+		tableau.m[x][n+x] = 1
+
 	return tableau
 
 
@@ -285,7 +301,7 @@ def get_init_tableau(payoff, m, n) -> Tableau:
  '''
 
 
-def pivot_tableau(tableau: Tableau) -> Tableau:
+def pivot_tableau(tableau: Tableau) -> Tuple[Tableau, int, int]:
 	pivot_col = np.argmin(tableau.m[tableau.rows-1])
 	min_value = sys.maxsize
 	pivot_row = Fraction(-1)
@@ -304,7 +320,7 @@ def pivot_tableau(tableau: Tableau) -> Tableau:
 			if row != pivot_row:
 				tableau.m[row][col] = Fraction(tableau.m[row][col] - Fraction(prev_tableau[row][pivot_col] * tableau.m[pivot_row][col]))
 
-	return tableau
+	return (tableau, pivot_row, pivot_col)
 
 
 '''
@@ -333,24 +349,39 @@ def main():
 	n: int = payoff_result.n
 
 	tableau: Tableau = get_init_tableau(payoff_result.payoff, m, n)
-	# Add default values to tableau
-	for x in range(m):
-		tableau.m[n][x] = -1
-		tableau.m[x][m+n] = 1
-		tableau.m[x][n+x] = 1
-	print("Initial Tableau:")
-	print(tableau)
+	order = [-1] * n
 
 	pivot_count = 0
-
 	# while true hype...incomplete SF 10/13
 	while True:
-		tableau = pivot_tableau(tableau)
+		if pivot_count == 0:
+			print("Initial Tableau:")
+		else:
+			print("Tableau {}:".format(pivot_count))
+		print(tableau)
+
+		(tableau, pivot_row, pivot_col) = pivot_tableau(tableau)
+		if pivot_count < n:
+			order[pivot_count] = pivot_row
+
+		print("Pivot: ( {}, {} )\n".format(pivot_row, pivot_col))
 		pivot_count += 1
-		print("Pivot #" + str(pivot_count) + ":")
-		# break when no negative values on bottom row
+
 		if np.min(tableau.m[tableau.rows-1]) >= 0:
 			break
+
+	print("Final Tableau:")
+	print(tableau)
+
+	v = tableau.m[tableau.rows - 1][tableau.cols - 1]
+	value = (1 / v) - tableau.k
+
+	p1_strategy = [tableau.m[tableau.rows - 1][n + col] / v for col in range(m)]
+	p2_strategy = [tableau.m[order[index]][tableau.cols - 1] / v if order[index] >= 0 else 0 for index in range(n)]
+
+	print("\nPlayer 1 Optimal Strategy: (", ", ".join("{}/{}".format(p.numerator, p.denominator) for p in p1_strategy), ")")
+	print("Player 2 Optimal Strategy: (", ", ".join("{}/{}".format(q.numerator, q.denominator) for q in p2_strategy), ")")
+	print("Value: {}".format(value))
 
 	return 0
 
