@@ -266,8 +266,8 @@ def get_init_tableau(payoff, m, n) -> Tableau:
 	# populate the initial tableau so that every entry >=
 	# in the elif the == will eval to 1 or 0 since
 	# True or False is equiv to those respectively
-	for row in range(0, m):
-		for col in range(0, n):
+	for row in range(0, tableau.rows):
+		for col in range(0, tableau.cols):
 			if (col < n):
 				tableau.m[row][col] = Fraction(payoff[row][col] + k) \
 					if (row < m) else Fraction(-1)
@@ -276,12 +276,6 @@ def get_init_tableau(payoff, m, n) -> Tableau:
 					if (row < m) else Fraction(0)
 			else:
 				tableau.m[row][col] = Fraction((row < m))
-
-	# Add default values to tableau
-	for x in range(m):
-		tableau.m[n][x] = -1
-		tableau.m[x][m+n] = 1
-		tableau.m[x][n+x] = 1
 
 	return tableau
 
