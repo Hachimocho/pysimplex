@@ -309,6 +309,35 @@ def pivot_tableau(tableau: Tableau) -> Tuple[Tableau, int, int]:
 	return (tableau, pivot_row, pivot_col)
 
 
+
+def find_saddle(matrix):
+	row_mins = []
+	row_maxs = []
+	col_mins = []
+	col_maxs = []
+	for i, row in enumerate(matrix):
+		mR = min(row)
+		MR = max(row)
+		for j, x in enumerate(row):
+			if x == mR: row_mins.append((i, j))
+			if x == MR: row_maxs.append((i, j))
+
+	t = [list(column) for column in zip(*matrix)]  # transpose of matrix
+
+	for j, col in enumerate(t):
+		mR = min(col)
+		MR = max(col)
+		for i, x in enumerate(col):
+			if x == mR: col_mins.append((i, j))
+			if x == MR: col_maxs.append((i, j))
+
+	if len((set(row_mins) & set(col_maxs)) | (set(row_maxs) & set(col_mins))) != 0:
+		return (set(row_mins) & set(col_maxs)) | (set(row_maxs) & set(col_mins))
+	else:
+		return False
+
+
+
 '''
  * Runs the simplex method on the supplied payoff matrix.
  *
@@ -339,39 +368,44 @@ def main():
 	tableau: Tableau = get_init_tableau(payoff_result.payoff, m, n)
 	order = [-1] * n
 
-	pivot_count = 0
-	# while true hype...incomplete SF 10/13
-	while True:
-		if pivot_count == 0:
-			print("Initial Tableau:")
-		else:
-			print("Tableau {}:".format(pivot_count))
+	saddle = find_saddle(payoff_result.payoff)
+	if saddle == False:
+		pivot_count = 0
+		# while true hype...incomplete SF 10/13
+		while True:
+			if pivot_count == 0:
+				print("Initial Tableau:")
+			else:
+				print("Tableau {}:".format(pivot_count))
+			print(tableau)
+
+			(tableau, pivot_row, pivot_col) = pivot_tableau(tableau)
+			if pivot_count < n:
+				order[pivot_count] = pivot_row
+
+			print("Pivot: ( {}, {} )\n".format(pivot_row, pivot_col))
+			pivot_count += 1
+
+			if np.min(tableau.m[tableau.rows-1]) >= 0:
+				break
+
+		print("Final Tableau:")
 		print(tableau)
 
-		(tableau, pivot_row, pivot_col) = pivot_tableau(tableau)
-		if pivot_count < n:
-			order[pivot_count] = pivot_row
+		v = tableau.m[tableau.rows - 1][tableau.cols - 1]
+		value = (1 / v) - tableau.k
 
-		print("Pivot: ( {}, {} )\n".format(pivot_row, pivot_col))
-		pivot_count += 1
+		p1_strategy = [tableau.m[tableau.rows - 1][n + col] / v for col in range(m)]
+		p2_strategy = [tableau.m[order[index]][tableau.cols - 1] / v if order[index] >= 0 else 0 for index in range(n)]
 
-		if np.min(tableau.m[tableau.rows-1]) >= 0:
-			break
+		print("\nPlayer 1 Optimal Strategy: (", ", ".join(format_frac(p) for p in p1_strategy), ")")
+		print("Player 2 Optimal Strategy: (", ", ".join(format_frac(q) for q in p2_strategy), ")")
+		print("Value: {}".format(format_frac(value)))
 
-	print("Final Tableau:")
-	print(tableau)
-
-	v = tableau.m[tableau.rows - 1][tableau.cols - 1]
-	value = (1 / v) - tableau.k
-
-	p1_strategy = [tableau.m[tableau.rows - 1][n + col] / v for col in range(m)]
-	p2_strategy = [tableau.m[order[index]][tableau.cols - 1] / v if order[index] >= 0 else 0 for index in range(n)]
-
-	print("\nPlayer 1 Optimal Strategy: (", ", ".join(format_frac(p) for p in p1_strategy), ")")
-	print("Player 2 Optimal Strategy: (", ", ".join(format_frac(q) for q in p2_strategy), ")")
-	print("Value: {}".format(format_frac(value)))
-
-	return 0
+		return 0
+	else:
+		print(saddle)
+		return 0
 
 
 if __name__ == '__main__':
