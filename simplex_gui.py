@@ -73,11 +73,15 @@ class Tableau:
 			if 0 < value < min_value:
 				min_value = value
 				pivot_row = row
-		if pivot_row == -1:
+		if pivot_row == Fraction(-1):
+			self.finished = True
+			return
+		if np.min(self.m[-1]) >= 0:
 			self.finished = True
 			return
 		pivot_value = Fraction(self.m[pivot_row][pivot_col])
-		print(pivot_value)
+		if (self.finished == False):
+			print("Pivoted at value " + str(pivot_value - self.k) + ", row " + str(pivot_row+1) + ", column " + str(pivot_col+1))
 		prev_tableau = np.copy(self.m)
 		for col, _ in enumerate(self.m[pivot_row]):
 			self.m[pivot_row][col] = Fraction(self.m[pivot_row][col] / pivot_value)
@@ -308,13 +312,14 @@ class GUI(tk.Frame):
 	def findSaddle(self):
 		tableau = self.getTableau()
 		if type(tableau) != Tableau:
+			print("Tableau error.")
 			return
 		saddle_point_text = "Saddle points:\n"
 		for rownum in range(tableau.rows-1):
 			for columnnum in range(tableau.cols-tableau.rows):
 				entry = tableau.m[rownum][columnnum]
 				if (entry == np.min(tableau.m[rownum][0:tableau.cols-tableau.rows])) and (entry == np.max(np.swapaxes(tableau.m, 0, 1)[columnnum][0:tableau.rows-1])):
-					saddle_point_text += str(entry) + "(" + str(rownum) + "," + str(columnnum) + ")\n"
+					saddle_point_text += str(entry - tableau.k) + "(" + str(rownum) + "," + str(columnnum) + ")\n"
 		self.buttons_label.config(text=saddle_point_text)
 
 
